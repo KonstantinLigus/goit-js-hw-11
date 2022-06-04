@@ -1,0 +1,16 @@
+.search-form {
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  background-color: blue;
+}
+input {
+  width: 600px;
+  height: 40px;
+}
+button {
+  height: 40px;
+}
