@@ -10,10 +10,11 @@
 input {
   width: 600px;
   height: 40px;
+  border-radius: 7px;
 }
 button {
   height: 40px;
-  background-color: #fff;
-  border-color: #fff;
-  border-radius: 5px;
+  background-color: rgb(255, 255, 255);
+  border-color: rgb(255, 255, 255);
+  border-radius: 7px;
 }
