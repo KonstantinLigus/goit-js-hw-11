@@ -8,6 +8,7 @@
   background-color: blue;
 }
 input {
+  padding: 7px;
   width: 600px;
   height: 40px;
   border-radius: 7px;
@@ -17,4 +18,8 @@ button {
   background-color: rgb(255, 255, 255);
   border-color: rgb(255, 255, 255);
   border-radius: 7px;
+
+  :hover img {
+    background-color: rgba(255, 255, 255, 0.596);
+  }
 }

@@ -33,7 +33,7 @@ img {
   margin-right: auto;
   margin-top: 10px;
   background-color: rgb(4, 0, 255);
-  color: white;
+  color: rgb(255, 255, 255);
   border-width: 0;
   border-radius: 7px;
 
@@ -43,4 +43,7 @@ img {
   &:active {
     background-color: rgba(0, 153, 255, 0.829);
   }
+}
+a {
+  // display: block;
 }
