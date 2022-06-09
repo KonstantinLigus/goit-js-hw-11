@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
@@ -7,6 +8,7 @@ let page = 1;
 let perPage = 40;
 let totalPages = 0;
 let query = null;
+let simpleLightbox = null;
 
 const refs = {
   searchInput: document.querySelector('.search-form'),
@@ -44,8 +46,8 @@ async function onLoadMoreClick(event) {
 
 async function fetchData(query) {
   const param = `?key=27854076-b3a96c006ceb1c322db1c0d19&q=${query}&image_type=photo&orientation=horizontal&safesearch=truekk&page=${page}&per_page=${perPage}`;
-  const resp = await fetch(URL + param);
-  return resp.json();
+  const resp = await axios.get(URL + param);
+  return resp.data;
 }
 
 function renderGallery(data) {
@@ -63,7 +65,6 @@ function renderGallery(data) {
       <div class="photo-card">
       <a href="${largeImageURL}">
         <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-      </a>
         <div class="info">
           <p class="info-item">
             <b>Likes</b>
@@ -82,6 +83,7 @@ function renderGallery(data) {
             <br>${downloads}
           </p>
         </div>
+      </a>
       </div>
   `;
   });
@@ -105,7 +107,7 @@ function submitDataCheckerAndRender(data) {
   refs.loadMoreBtn.style.display = 'none';
   Notify.info(`Hooray! We found ${data.totalHits} images.`);
   renderGallery(data);
-  let gallery = new SimpleLightbox('.gallery a');
+  simpleLightbox = new SimpleLightbox('.gallery a');
   refs.loadMoreBtn.style.display = 'block';
 }
 
@@ -117,5 +119,17 @@ function onLoadMoreDataCheckerAndRender(data) {
     return;
   }
   renderGallery(data);
+  simpleLightbox.refresh();
+  scrollingPage();
   refs.loadMoreBtn.style.display = 'block';
+}
+
+function scrollingPage() {
+  const { height: cardHeight } =
+    refs.gallery.firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
 }
