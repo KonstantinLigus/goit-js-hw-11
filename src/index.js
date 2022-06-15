@@ -10,7 +10,8 @@ let page = 1;
 let perPage = 40;
 let totalPages = 0;
 let query = null;
-let simpleLightbox = new SimpleLightbox('.gallery a');
+let param = null;
+const simpleLightbox = new SimpleLightbox('.gallery a');
 
 const refs = {
   searchInput: document.querySelector('.search-form'),
@@ -47,51 +48,52 @@ refs.searchInput.addEventListener('submit', onSubmitClick);
 // }
 
 // async function fetchData(query) {
-//   const param = `?key=${key}&q=${query}&image_type=photo&orientation=horizontal&safesearch=truekk&page=${page}&per_page=${perPage}`;
+//   param = `?key=${key}&q=${query}&image_type=photo&orientation=horizontal&safesearch=truekk&page=${page}&per_page=${perPage}`;
 //   const resp = await axios.get(URL + param);
 //   return resp.data;
 // }
 
-// function renderGallery(data) {
-//   const markupContent = data.hits.map(obj => {
-//     const {
-//       webformatURL,
-//       largeImageURL,
-//       tags,
-//       likes,
-//       views,
-//       comments,
-//       downloads,
-//     } = obj;
-//     return `
-//       <div class="photo-card">
-//       <a href="${largeImageURL}">
-//         <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-//         <div class="info">
-//           <p class="info-item">
-//             <b>Likes</b>
-//             <br>${likes}
-//           </p>
-//           <p class="info-item">
-//             <b>Views</b>
-//             <br>${views}
-//           </p>
-//           <p class="info-item">
-//             <b>Comments</b>
-//             <br>${comments}
-//           </p>
-//           <p class="info-item">
-//             <b>Downloads</b>
-//             <br>${downloads}
-//           </p>
-//         </div>
-//       </a>
-//       </div>
-//   `;
-//   });
-//   refs.gallery.insertAdjacentHTML('beforeend', markupContent.join(' '));
-//   simpleLightbox.refresh();
-// }
+function renderGallery(data) {
+  const markupContent = data.hits.map(
+    ({
+      webformatURL,
+      largeImageURL,
+      tags,
+      likes,
+      views,
+      comments,
+      downloads,
+    }) => {
+      return `
+      <div class="photo-card">
+      <a href="${largeImageURL}">
+        <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+        <div class="info">
+          <p class="info-item">
+            <b>Likes</b>
+            <br>${likes}
+          </p>
+          <p class="info-item">
+            <b>Views</b>
+            <br>${views}
+          </p>
+          <p class="info-item">
+            <b>Comments</b>
+            <br>${comments}
+          </p>
+          <p class="info-item">
+            <b>Downloads</b>
+            <br>${downloads}
+          </p>
+        </div>
+      </a>
+      </div>
+  `;
+    }
+  );
+  refs.gallery.insertAdjacentHTML('beforeend', markupContent.join(' '));
+  simpleLightbox.refresh();
+}
 
 // function submitDataCheckerAndRender(data) {
 //   totalPages = Math.ceil(data.totalHits / perPage);
@@ -148,56 +150,41 @@ function onSubmitClick(event) {
   }
   query = event.target.elements.searchQuery.value.trim();
 
-  let infScroll = new InfiniteScroll(refs.gallery, {
+  const infScroll = new InfiniteScroll(refs.gallery, {
     path: function () {
-      const param = `?key=${key}&q=${query}&image_type=photo&orientation=horizontal&safesearch=truekk&page=${page}&per_page=${perPage}`;
+      param = `?key=${key}&q=${query}&image_type=photo&orientation=horizontal&safesearch=truekk&page=${this.pageIndex}&per_page=${perPage}`;
       return URL + param;
     },
-    // load response as JSON
+    scrollThreshold: 40,
     responseBody: 'json',
-    status: '.scroll-status',
+    status: '.page-load-status',
     history: false,
-  });
-
-  infScroll.on('load', function (body) {
-    const itemsHTML = body.hits.map(getItemHTML);
-    refs.gallery.insertAdjacentHTML('beforeend', itemsHTML.join(' '));
-    simpleLightbox.refresh();
   });
   // load initial page
   infScroll.loadNextPage();
+  // infScroll.on('load', function (body) {
+  // dataCheckerAndRender(body, infScroll.pageIndex);
+  // });
+}
 
-  function getItemHTML({
-    webformatURL,
-    largeImageURL,
-    tags,
-    likes,
-    views,
-    comments,
-    downloads,
-  }) {
-    return `<div class="photo-card">
-          <a href="${largeImageURL}">
-            <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-            <div class="info">
-              <p class="info-item">
-                <b>Likes</b>
-                <br>${likes}
-              </p>
-              <p class="info-item">
-                <b>Views</b>
-                <br>${views}
-              </p>
-              <p class="info-item">
-                <b>Comments</b>
-                <br>${comments}
-              </p>
-              <p class="info-item">
-                <b>Downloads</b>
-                <br>${downloads}
-              </p>
-            </div>
-          </a>
-          </div>`;
+function dataCheckerAndRender(data, pageIndex) {
+  console.log(pageIndex);
+  totalPages = Math.ceil(data.totalHits / perPage);
+  if (data.hits.length === 0) {
+    Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+    return;
   }
+  if (pageIndex === 1) {
+    Notify.info(`Hooray! We found ${data.totalHits} images.`);
+    renderGallery(data);
+    return;
+  }
+  if (pageIndex === totalPages) {
+    Notify.info("We're sorry, but you've reached the end of search results.");
+    renderGallery(data);
+    return;
+  }
+  renderGallery(data);
 }
