@@ -139,36 +139,37 @@ function renderGallery(data) {
 // }
 // ---------------Infinite scroll-----------
 
-// let container = document.querySelector('.container');
+const infScroll = new InfiniteScroll(refs.gallery, {
+  path: function () {
+    param = `?key=${key}&q=${query}&image_type=photo&orientation=horizontal&safesearch=truekk&page=${this.pageIndex}&per_page=${perPage}`;
+    return URL + param;
+  },
+  scrollThreshold: 0,
+  responseBody: 'json',
+  status: '.page-load-status',
+  history: false,
+});
+
+infScroll.on('load', function (body) {
+  dataCheckerAndRender(body);
+});
 
 function onSubmitClick(event) {
   event.preventDefault();
-  page = 1;
+  infScroll.pageIndex = 1;
   refs.gallery.innerHTML = '';
   if (event.target.elements.searchQuery.value === '') {
     return;
   }
   query = event.target.elements.searchQuery.value.trim();
 
-  const infScroll = new InfiniteScroll(refs.gallery, {
-    path: function () {
-      param = `?key=${key}&q=${query}&image_type=photo&orientation=horizontal&safesearch=truekk&page=${this.pageIndex}&per_page=${perPage}`;
-      return URL + param;
-    },
-    scrollThreshold: 40,
-    responseBody: 'json',
-    status: '.page-load-status',
-    history: false,
-  });
   // load initial page
   infScroll.loadNextPage();
-  // infScroll.on('load', function (body) {
-  // dataCheckerAndRender(body, infScroll.pageIndex);
-  // });
 }
 
-function dataCheckerAndRender(data, pageIndex) {
-  console.log(pageIndex);
+function dataCheckerAndRender(data) {
+  page = infScroll.pageIndex - 1;
+  console.log(page);
   totalPages = Math.ceil(data.totalHits / perPage);
   if (data.hits.length === 0) {
     Notify.failure(
@@ -176,12 +177,12 @@ function dataCheckerAndRender(data, pageIndex) {
     );
     return;
   }
-  if (pageIndex === 1) {
+  if (page === 1) {
     Notify.info(`Hooray! We found ${data.totalHits} images.`);
     renderGallery(data);
     return;
   }
-  if (pageIndex === totalPages) {
+  if (page === totalPages) {
     Notify.info("We're sorry, but you've reached the end of search results.");
     renderGallery(data);
     return;
